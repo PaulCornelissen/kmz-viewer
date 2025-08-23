@@ -1,35 +1,107 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import React from 'react'
+import './styles.css'
+import { Dropzone } from './components/Dropzone'
+import { MapView } from './components/MapView'
+import { SpeedChart } from './components/SpeedChart'
+import type { AnalysisResult, Ride } from './types'
 
-function App() {
-  const [count, setCount] = useState(0)
+
+export default function App() {
+  const [loading, setLoading] = React.useState(false)
+  const [error, setError] = React.useState<string | null>(null)
+  const [data, setData] = React.useState<AnalysisResult | null>(null)
+  const [selectedRideId, setSelectedRideId] = React.useState<number | null>(null)
+
+
+  const workerRef = React.useRef<Worker | null>(null)
+  React.useEffect(() => {
+    const w = new Worker(new URL('./worker/trackWorker.ts', import.meta.url), { type: 'module' })
+    w.onmessage = (ev: MessageEvent) => {
+      const { ok, result, error } = ev.data
+      setLoading(false)
+      if (!ok) { setError(error || 'Onbekende fout'); return }
+      setData(result as AnalysisResult)
+      setSelectedRideId((result as AnalysisResult).rides[0]?.id ?? null)
+    }
+    workerRef.current = w
+    return () => { w.terminate(); workerRef.current = null }
+  }, [])
+
+
+  const onFile = async (file: File) => {
+    setError(null); setLoading(true)
+    const buf = await file.arrayBuffer()
+    workerRef.current?.postMessage({ fileBuffer: buf })
+  }
+
+
+  const ride = data?.rides.find(r => r.id === selectedRideId) || null
+
+
+  const fmtKm = (m: number) => (m / 1000).toFixed(2)
+  const fmtDur = (s: number) => {
+    const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60)
+    return `${h}u ${m}m`
+  }
+
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+    <div className="app">
+      <div className="sidebar">
+        <Dropzone onFile={onFile} />
+
+
+        <div className="section">
+          <h3 className="h">Status</h3>
+          {loading ? <p>Bezig met verwerken…</p> : error ? <p style={{ color: '#f87171' }}>{error}</p> : <p className="muted">Klaar om te starten</p>}
+        </div>
+
+
+        <div className="section">
+          <h3 className="h">Overzicht</h3>
+          {data ? (
+            <div className="stats">
+              <div className="stat"><div className="small">Totaal afstand</div><div><strong>{fmtKm(data.totalDistanceM)} km</strong></div></div>
+              <div className="stat"><div className="small"># Ritten</div><div><strong>{data.rides.length}</strong></div></div>
+              <div className="stat"><div className="small"># Stops</div><div><strong>{data.stops.length}</strong></div></div>
+              <div className="stat"><div className="small">v_min</div><div><strong>{data.params.vMinKmh} km/h</strong></div></div>
+            </div>
+          ) : <p className="muted">Geen data</p>}
+        </div>
+
+
+        <div className="section">
+          <h3 className="h">Ritten</h3>
+          <div className="list">
+            {data?.rides.map(r => (
+              <div key={r.id} className={`item ${selectedRideId === r.id ? 'active' : ''}`} onClick={() => setSelectedRideId(r.id)}>
+                <div className="row">
+                  <div><strong>Rit {r.id}</strong></div>
+                  <div className="muted">{fmtKm(r.distanceM)} km</div>
+                </div>
+                <div className="small">{new Date(r.startTime).toLocaleString()} → {new Date(r.endTime).toLocaleString()}</div>
+                <div className="small">Duur {fmtDur(r.durationS)} · Gem {r.avgSpeedKmh.toFixed(1)} km/h</div>
+              </div>
+            ))}
+            {!data && <div className="muted">Ritten verschijnen hier</div>}
+          </div>
+        </div>
+
+
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
+
+
+      <div style={{ display: 'grid', gridTemplateRows: '1fr auto', minHeight: 0 }}>
+        <div className="section" style={{ margin: '12px 12px 6px' }}>
+          <div style={{ height: 'calc(100vh - 360px)' }}>
+            <MapView data={data} selectedRide={selectedRideId} onSelectRide={setSelectedRideId} />
+          </div>
+        </div>
+        <div className="section" style={{ margin: '6px 12px 12px' }}>
+          <h3 className="h">Snelheid</h3>
+          <SpeedChart data={data} ride={ride} />
+        </div>
       </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
+    </div>
   )
 }
-
-export default App
