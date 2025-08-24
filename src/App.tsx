@@ -6,12 +6,31 @@ import { SpeedChart } from './components/SpeedChart'
 import type { AnalysisResult, Ride } from './types'
 
 
+import { ParamControls } from './components/ParamControls'
+
+import type { AnalyseParams } from './types'
+
 export default function App() {
+  const [fileBuf, setFileBuf] = React.useState<ArrayBuffer | null>(null)
+  const [params, setParams] = React.useState<Partial<AnalyseParams>>({
+    vMinKmh: 2,
+    dMinM: 50,
+    rideMinMin: 3,
+    stopMinMin: 5,
+    gapSplitMin: 20,
+  })
+
   const [loading, setLoading] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
   const [data, setData] = React.useState<AnalysisResult | null>(null)
   const [selectedRideId, setSelectedRideId] = React.useState<number | null>(null)
 
+
+  const reAnalyze = () => {
+    if (!fileBuf) return
+    setLoading(true)
+    workerRef.current?.postMessage({ fileBuffer: fileBuf, params })
+  }
 
   const workerRef = React.useRef<Worker | null>(null)
   React.useEffect(() => {
@@ -31,7 +50,7 @@ export default function App() {
   const onFile = async (file: File) => {
     setError(null); setLoading(true)
     const buf = await file.arrayBuffer()
-    workerRef.current?.postMessage({ fileBuffer: buf })
+    setFileBuf(buf); workerRef.current?.postMessage({ fileBuffer: buf, params })
   }
 
 
@@ -58,6 +77,15 @@ export default function App() {
 
 
         <div className="section">
+
+          <div className="section">
+            <h3 className="h">Parameters</h3>
+            <ParamControls params={params} onChange={setParams} />
+            <div className="row" style={{ marginTop: 8 }}>
+              <button className="btn" onClick={reAnalyze} disabled={!fileBuf || loading}>Opnieuw analyseren</button>
+              <span className="muted">Wijzig drempels en klik opnieuw</span>
+            </div>
+          </div>
           <h3 className="h">Overzicht</h3>
           {data ? (
             <div className="stats">

@@ -85,8 +85,8 @@ export function MapView({ data, selectedRide, onSelectRide }: {
                 source: sourceId,
                 paint: {
                     'line-color': rideColor(r.id),
-                    'line-width': selectedRide === r.id ? 5 : 3,
-                    'line-opacity': selectedRide && selectedRide !== r.id ? 0.3 : 0.9
+                    'line-width': selectedRide === r.id ? 8 : 5,
+                    'line-opacity': selectedRide && selectedRide !== r.id ? 0.5 : 1.0
                 }
             })
 
