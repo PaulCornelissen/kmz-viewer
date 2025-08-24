@@ -27,8 +27,8 @@ export function Dropzone({ onFile }: { onFile: (file: File) => void }) {
                 onDrop={onDrop}
                 onClick={() => inputRef.current?.click()}
             >
-                <p>Drop je <strong>.kmz</strong> hier of klik om te bladeren</p>
-                <input ref={inputRef} type="file" accept=".kmz" hidden onChange={onChange} />
+                <p>Drop je <strong>.kml/.kmz</strong> hier of klik om te bladeren</p>
+                <input ref={inputRef} type="file" accept=".kml,.kmz" hidden onChange={onChange} />
             </div>
         </div>
     )

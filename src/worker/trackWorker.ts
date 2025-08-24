@@ -1,6 +1,4 @@
-
 /// <reference lib="webworker" />
-
 import JSZip from 'jszip'
 import type { AnalyseParams, AnalysisResult, Point } from '../types'
 import { analyze } from '../lib/segmentation'
@@ -18,12 +16,18 @@ const DEFAULT_PARAMS: AnalyseParams = {
 self.onmessage = async (ev: MessageEvent) => {
     const { fileBuffer, params } = ev.data as { fileBuffer: ArrayBuffer, params?: Partial<AnalyseParams> }
     try {
-        const zip = await JSZip.loadAsync(fileBuffer)
-        const kmlEntry = Object.values(zip.files).find(f => f.name.toLowerCase().endsWith('.kml'))
-        if (!kmlEntry) throw new Error('Geen .kml gevonden in KMZ')
+        let kmlText = ''
+        try {
+            const zip = await JSZip.loadAsync(fileBuffer)
+            const kmlEntry = Object.values(zip.files).find(f => f.name.toLowerCase().endsWith('.kml'))
+            if (!kmlEntry) throw new Error('Geen .kml gevonden in KMZ')
+            kmlText = await kmlEntry.async('text')
+        } catch {
+            // Niet-zip: behandel als plain KML
+            kmlText = new TextDecoder('utf-8').decode(new Uint8Array(fileBuffer))
+        }
 
 
-        const kmlText = await kmlEntry.async('text')
         const points = parsePointsFromKml(kmlText)
         if (points.length < 2) throw new Error('Geen bruikbare trackpunten gevonden')
 
@@ -38,6 +42,7 @@ self.onmessage = async (ev: MessageEvent) => {
         ; (self as unknown as Worker).postMessage({ ok: false, error: e?.message || String(e) })
     }
 }
+
 
 // --- KML parsing helpers ---
 function parsePointsFromKml(kml: string): Point[] {
