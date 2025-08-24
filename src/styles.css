@@ -28,3 +28,41 @@ body { font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, s
   min-width: 56px;
   justify-self: end;
 }
+/* Param controls layout */
+.pc-row {
+  display: grid;
+  grid-template-columns: 60px 1fr 50px; /* label | slider | value */
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.pc-label {
+  font-size: 12px;
+  color: var(--muted);
+  cursor: help;
+  text-decoration: underline dotted;
+  white-space: nowrap;        /* labels niet laten afbreken */
+}
+
+.pc-control { min-width: 0; } /* laat de slider krimpen waar nodig */
+.pc-range {
+  display: block;
+  width: 100%;
+  margin: 0;                  /* consistent tussen browsers */
+  vertical-align: middle;
+  /* optioneel: theme-kleur voor de thumb/track (Chrome/Edge/Firefox) */
+  accent-color: var(--accent);
+}
+
+.valbubble {
+  width: 40px;                /* match 3e kolom */
+  background: #0f172a;
+  border: 1px solid #1f2937;
+  border-radius: 10px;
+  padding: 2px 6px;
+  font-size: 12px;
+  line-height: 1.2;
+  text-align: right;
+  justify-self: end;
+}

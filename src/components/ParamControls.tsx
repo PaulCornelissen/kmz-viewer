@@ -14,19 +14,20 @@ const DESCR: Record<keyof AnalyseParams, string> = {
   gapSplitMin: 'Splits track bij datagaten langer dan dit aantal minuten.'
 }
 
-function Row({ label, title, value, unit, children }: {
-  label: string, title: string, value: number | string, unit?: string, children: React.ReactNode
+function Row({
+  label, title, value, unit, children,
+}: {
+  label: string; title: string; value: number | string; unit?: string; children: React.ReactNode;
 }) {
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 70px', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-      <div className="small" title={title} style={{ cursor: 'help', textDecoration: 'underline dotted' }}>
-        {label}
-      </div>
-      {children}
+    <div className="pc-row">
+      <div className="pc-label" title={title}>{label}</div>
+      <div className="pc-control">{children}</div>
       <div className="valbubble"><strong>{value}</strong>{unit ? ` ${unit}` : ''}</div>
     </div>
-  )
+  );
 }
+
 
 export function ParamControls({ params, onChange }: Props) {
   const set = (k: keyof AnalyseParams) => (v: number) => onChange({ ...params, [k]: v })
@@ -35,6 +36,7 @@ export function ParamControls({ params, onChange }: Props) {
     <div>
       <Row label="v_min" title={DESCR.vMinKmh} value={params.vMinKmh ?? 2} unit="km/h">
         <input
+          className="pc-range"
           type="range" min={0} max={10} step={0.5}
           value={params.vMinKmh ?? 2}
           onChange={e => set('vMinKmh')(parseFloat(e.target.value))}
@@ -43,6 +45,7 @@ export function ParamControls({ params, onChange }: Props) {
 
       <Row label="d_min" title={DESCR.dMinM} value={params.dMinM ?? 50} unit="m">
         <input
+          className="pc-range"
           type="range" min={0} max={200} step={5}
           value={params.dMinM ?? 50}
           onChange={e => set('dMinM')(parseFloat(e.target.value))}
@@ -51,6 +54,7 @@ export function ParamControls({ params, onChange }: Props) {
 
       <Row label="ride_min" title={DESCR.rideMinMin} value={params.rideMinMin ?? 3} unit="min">
         <input
+          className="pc-range"
           type="range" min={1} max={30} step={1}
           value={params.rideMinMin ?? 3}
           onChange={e => set('rideMinMin')(parseFloat(e.target.value))}
@@ -59,6 +63,7 @@ export function ParamControls({ params, onChange }: Props) {
 
       <Row label="stop_min" title={DESCR.stopMinMin} value={params.stopMinMin ?? 5} unit="min">
         <input
+          className="pc-range"
           type="range" min={1} max={60} step={1}
           value={params.stopMinMin ?? 5}
           onChange={e => set('stopMinMin')(parseFloat(e.target.value))}
@@ -67,6 +72,7 @@ export function ParamControls({ params, onChange }: Props) {
 
       <Row label="gap_split" title={DESCR.gapSplitMin} value={params.gapSplitMin ?? 20} unit="min">
         <input
+          className="pc-range"
           type="range" min={5} max={180} step={5}
           value={params.gapSplitMin ?? 20}
           onChange={e => set('gapSplitMin')(parseFloat(e.target.value))}
