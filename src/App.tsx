@@ -25,12 +25,17 @@ export default function App() {
   const [data, setData] = React.useState<AnalysisResult | null>(null)
   const [selectedRideId, setSelectedRideId] = React.useState<number | null>(null)
 
-
-  const reAnalyze = () => {
+  const reAnalyze = React.useCallback(() => {
     if (!fileBuf) return
     setLoading(true)
     workerRef.current?.postMessage({ fileBuffer: fileBuf, params })
-  }
+  }, [fileBuf, params])
+
+  const debRef = React.useRef<number | undefined>(undefined)
+  const reAnalyzeDebounced = React.useCallback(() => {
+    if (debRef.current) window.clearTimeout(debRef.current)
+    debRef.current = window.setTimeout(reAnalyze, 250)
+  }, [reAnalyze])
 
   const workerRef = React.useRef<Worker | null>(null)
   React.useEffect(() => {
@@ -80,11 +85,10 @@ export default function App() {
 
           <div className="section">
             <h3 className="h">Parameters</h3>
-            <ParamControls params={params} onChange={setParams} />
-            <div className="row" style={{ marginTop: 8 }}>
-              <button className="btn" onClick={reAnalyze} disabled={!fileBuf || loading}>Opnieuw analyseren</button>
-              <span className="muted">Wijzig drempels en klik opnieuw</span>
-            </div>
+            <ParamControls
+              params={params}
+              onChange={(p) => { setParams(p); reAnalyzeDebounced(); }}
+            />
           </div>
           <h3 className="h">Overzicht</h3>
           {data ? (
