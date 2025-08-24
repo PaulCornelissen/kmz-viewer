@@ -12,11 +12,23 @@ function rideColor(i: number) {
 }
 
 
-export function MapView({ data, selectedRide, onSelectRide }: {
-    data: AnalysisResult | null,
-    selectedRide: number | null,
+export function MapView({
+    data,
+    selectedRide,
+    onSelectRide,
+    zoomRideId,
+    onZoomDone,
+    zoomAllNonce,
+}: {
+    data: AnalysisResult | null
+    selectedRide: number | null
     onSelectRide: (id: number | null) => void
+    zoomRideId?: number | null
+    onZoomDone?: () => void
+
+    zoomAllNonce?: number
 }) {
+
     const mapRef = useRef<Map | null>(null)
     const divRef = useRef<HTMLDivElement | null>(null)
 
@@ -124,8 +136,49 @@ export function MapView({ data, selectedRide, onSelectRide }: {
             [b[2] + pad, b[3] + pad]
         ]
         map.fitBounds(bounds, { padding: 40, duration: 600 })
-    }, [data, selectedRide])
+    }, [data])
 
+    useEffect(() => {
+        const map = mapRef.current
+        if (!map || !data) return
+        data.rides.forEach(r => {
+            const id = `ride-${r.id}`
+            if (map.getLayer(id)) {
+                map.setPaintProperty(id, 'line-width', selectedRide === r.id ? 8 : 5)
+                map.setPaintProperty(
+                    id,
+                    'line-opacity',
+                    selectedRide && selectedRide !== r.id ? 0.5 : 1.0
+                )
+            }
+        })
+    }, [selectedRide, data])
+
+
+    useEffect(() => {
+        const map = mapRef.current
+        if (!map || !data || !zoomRideId) return
+        const r = data.rides.find(x => x.id === zoomRideId)
+        if (!r) return
+        const coords = data.points.slice(r.startIdx, r.endIdx + 1).map(p => [p.lon, p.lat] as [number, number])
+        const bounds = new maplibregl.LngLatBounds()
+        coords.forEach(c => bounds.extend(c))
+        map.fitBounds(bounds, { padding: 40, duration: 500 })
+        onZoomDone?.()
+    }, [zoomRideId, data])
+
+
+    useEffect(() => {
+        const map = mapRef.current
+        if (!map || !data || zoomAllNonce == null) return
+        const b = data.bbox
+        const pad = 0.05
+        const bounds: LngLatBoundsLike = [
+            [b[0] - pad, b[1] - pad],
+            [b[2] + pad, b[3] + pad],
+        ]
+        map.fitBounds(bounds, { padding: 40, duration: 500 })
+    }, [zoomAllNonce, data])
 
     return <div ref={divRef} className="map" />
 }

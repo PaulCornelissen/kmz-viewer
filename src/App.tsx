@@ -68,6 +68,12 @@ export default function App() {
     return `${h}u ${m}m`
   }
 
+  const [zoomRideId, setZoomRideId] = React.useState<number | null>(null)
+  const [zoomAllNonce, setZoomAllNonce] = React.useState(0)
+  const zoomAll = () => {
+    if (!data) return
+    setZoomAllNonce(n => n + 1)
+  }
 
   return (
     <div className="app">
@@ -126,7 +132,17 @@ export default function App() {
       <div style={{ display: 'grid', gridTemplateRows: '1fr auto', minHeight: 0 }}>
         <div className="section" style={{ margin: '12px 12px 6px' }}>
           <div style={{ height: 'calc(100vh - 360px)' }}>
-            <MapView data={data} selectedRide={selectedRideId} onSelectRide={setSelectedRideId} />
+            <MapView
+              data={data}
+              selectedRide={selectedRideId}
+              onSelectRide={setSelectedRideId}
+              zoomRideId={zoomRideId}
+              onZoomDone={() => setZoomRideId(null)}
+              zoomAllNonce={zoomAllNonce}
+            /></div>
+          <div className="row" style={{ margin: '6px 12px' }}>
+            <button className="btn" disabled={!selectedRideId} onClick={() => setZoomRideId(selectedRideId)}>Zoom op rit</button>
+            <button className="btn" onClick={zoomAll} disabled={!data}>Reset zoom</button>
           </div>
         </div>
         <div className="section" style={{ margin: '6px 12px 12px' }}>
