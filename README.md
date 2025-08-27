@@ -118,16 +118,6 @@ styles.css                 # Thema + layout
 
 ---
 
-## Screenshots
-
-* Maak een screenshot van de app (kaart + sidebar met Parameters/Ritten).
-* Sla op als **`docs/screenshot.png`** (720–1400 px breed is prima).
-* GitHub toont dan automatisch de afbeelding bovenaan deze README.
-
-> Alternatief: gebruik `public/screenshot.png` en verwijs ernaar in de README.
-
----
-
 ## Privacy
 
 * Bestanden worden **niet** geüpload; parsing/analyse gebeurt **lokaal** in je browser.
@@ -151,22 +141,6 @@ styles.css                 # Thema + layout
 * Outlier-filter (max km/h, max afstand per minuut).
 * Datumfilters, maand-/weekstatistieken.
 * (Optioneel) Reverse geocoding voor stop-naam (client-side, rate-limited).
-
----
-
-## Licentie
-
-Kies wat je wilt (bijv. MIT).
-Als je MIT wilt gebruiken, maak `LICENSE` met:
-
-```
-MIT License
-
-Copyright (c) 2025 <Your Name>
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-...
-```
 
 ---
 
