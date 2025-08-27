@@ -1,7 +1,8 @@
 import React, { useEffect, useRef } from 'react'
 import maplibregl, { LngLatBoundsLike, LngLatLike, Map } from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
-import type { AnalysisResult, Ride } from '../types'
+import type { Feature, Point } from 'geojson'
+import type { AnalysisResult } from '../types'
 
 
 function rideColor(i: number) {
@@ -110,11 +111,11 @@ export function MapView({
 
 
         // Stops as points
-        const stopFeatures = data.stops.map(s => ({
+        const stopFeatures: Feature<Point, { id: number; duration: number }>[] = data.stops.map(s => ({
             type: 'Feature',
             properties: { id: s.id, duration: s.durationS },
-            geometry: { type: 'Point', coordinates: [s.centroid.lon, s.centroid.lat] }
-        })) as any
+            geometry: { type: 'Point', coordinates: [s.centroid.lon, s.centroid.lat] },
+        }))
 
 
         map.addSource('stops', { type: 'geojson', data: { type: 'FeatureCollection', features: stopFeatures } })
