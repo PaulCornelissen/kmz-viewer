@@ -38,8 +38,9 @@ self.onmessage = async (ev: MessageEvent) => {
 
 
             ; (self as unknown as Worker).postMessage({ ok: true, result })
-    } catch (e: any) {
-        ; (self as unknown as Worker).postMessage({ ok: false, error: e?.message || String(e) })
+    } catch (e: unknown) {
+        const message = e instanceof Error ? e.message : String(e)
+        ; (self as unknown as Worker).postMessage({ ok: false, error: message })
     }
 }
 
@@ -52,17 +53,21 @@ function parsePointsFromKml(kml: string): Point[] {
 
 
     // Fallback: LineString <coordinates> zonder <when> → veronderstel 60s interval
-    const coordsMatch = kml.match(/<coordinates>([\s\S]*?)<\/coordinates>/i)
-    if (!coordsMatch) return []
-    const coordsText = coordsMatch[1].trim()
-    const coords = coordsText
-        .split(/\s+/)
-        .map(s => s.split(',').map(Number)) // [lon, lat, alt?]
-        .filter(a => a.length >= 2 && isFinite(a[0]) && isFinite(a[1]))
-
+    const coordRegex = /<coordinates>([\s\S]*?)<\/coordinates>/gi
+    const allCoords: number[][] = []
+    let m: RegExpExecArray | null
+    while ((m = coordRegex.exec(kml))) {
+        const coords = m[1]
+            .trim()
+            .split(/\s+/)
+            .map(s => s.split(',').map(Number)) // [lon, lat, alt?]
+            .filter(a => a.length >= 2 && isFinite(a[0]) && isFinite(a[1]))
+        allCoords.push(...coords)
+    }
+    if (allCoords.length === 0) return []
 
     const startT = Date.now()
-    return coords.map((a, i) => ({
+    return allCoords.map((a, i) => ({
         t: startT + i * 60000,
         lon: a[0],
         lat: a[1],
