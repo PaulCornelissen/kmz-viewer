@@ -20,6 +20,7 @@ export function MapView({
     zoomRideId,
     onZoomDone,
     zoomAllNonce,
+    onBusyChange,
 }: {
     data: AnalysisResult | null
     selectedRide: number | null
@@ -28,6 +29,7 @@ export function MapView({
     onZoomDone?: () => void
 
     zoomAllNonce?: number
+    onBusyChange?: (busy: boolean) => void
 }) {
 
     const mapRef = useRef<Map | null>(null)
@@ -67,7 +69,7 @@ export function MapView({
     useEffect(() => {
         const map = mapRef.current
         if (!map) return
-
+        onBusyChange?.(true)
 
         // cleanup old layers/sources
         for (const id of ['track', 'stops']) {
@@ -80,9 +82,7 @@ export function MapView({
             if (map.getSource(lid)) map.removeSource(lid)
         })
 
-
-        if (!data) return
-
+        if (!data) { onBusyChange?.(false); return }
 
         // Add rides as separate sources/layers for easy coloring and click handling
         data.rides.forEach(r => {
@@ -137,7 +137,8 @@ export function MapView({
             [b[2] + pad, b[3] + pad]
         ]
         map.fitBounds(bounds, { padding: 40, duration: 600 })
-    }, [data])
+        map.once('idle', () => onBusyChange?.(false))
+    }, [data, selectedRide, onSelectRide, onBusyChange])
 
     useEffect(() => {
         const map = mapRef.current
@@ -166,7 +167,7 @@ export function MapView({
         coords.forEach(c => bounds.extend(c))
         map.fitBounds(bounds, { padding: 40, duration: 500 })
         onZoomDone?.()
-    }, [zoomRideId, data])
+    }, [zoomRideId, data, onZoomDone])
 
 
     useEffect(() => {
