@@ -24,6 +24,7 @@ export default function App() {
   const [error, setError] = React.useState<string | null>(null)
   const [data, setData] = React.useState<AnalysisResult | null>(null)
   const [selectedRideId, setSelectedRideId] = React.useState<number | null>(null)
+  const [mapBusy, setMapBusy] = React.useState(false)
 
   const reAnalyze = React.useCallback(() => {
     if (!fileBuf) return
@@ -83,7 +84,10 @@ export default function App() {
 
         <div className="section">
           <h3 className="h">Status</h3>
-          {loading ? <p>Bezig met verwerken…</p> : error ? <p style={{ color: '#f87171' }}>{error}</p> : <p className="muted">Klaar om te starten</p>}
+          {loading ? <p>Bezig met verwerken…</p>
+            : mapBusy ? <p>Bezig met tekenen…</p>
+              : error ? <p style={{ color: '#f87171' }}>{error}</p>
+                : <p className="muted">Klaar om te starten</p>}
         </div>
 
 
@@ -139,6 +143,7 @@ export default function App() {
               zoomRideId={zoomRideId}
               onZoomDone={() => setZoomRideId(null)}
               zoomAllNonce={zoomAllNonce}
+              onBusyChange={setMapBusy}
             />
             <div className="map-controls">
               <button
