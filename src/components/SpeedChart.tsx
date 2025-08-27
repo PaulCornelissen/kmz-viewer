@@ -17,14 +17,14 @@ export function SpeedChart({ data, ride }: { data: AnalysisResult | null, ride: 
         const y = pts.map(p => p.speedKmh || 0)
 
 
-        const trace = { x, y, mode: 'lines', type: 'scattergl', name: 'Snelheid (km/h)' } as any
+        const trace = { x, y, mode: 'lines', type: 'scattergl', name: 'Snelheid (km/h)' }
         const layout = {
             margin: { l: 40, r: 10, t: 10, b: 30 },
             paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)',
             xaxis: { title: 'Tijd', gridcolor: '#374151' },
             yaxis: { title: 'km/h', gridcolor: '#374151' },
             font: { color: '#e5e7eb' },
-        } as any
+        }
 
 
         Plotly.newPlot(ref.current, [trace], layout, { responsive: true, displaylogo: false })
